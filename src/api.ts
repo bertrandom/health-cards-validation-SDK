@@ -42,9 +42,9 @@ async function validateHealthcard(json: string, logLevel: LogLevels = LogLevels.
     return formatOutput(log, logLevel);
 }
 
-async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
+async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<Log> {
     const log = await jws.validate(text);
-    return formatOutput(log, logLevel);
+    return log;
 }
 
 async function validateJwspayload(payload: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
