@@ -42,19 +42,11 @@ async function validateHealthcard(json: string, logLevel: LogLevels = LogLevels.
     return formatOutput(log, logLevel);
 }
 
-async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<Log> {
-    const log = await jws.validate(text);
-    return log;
-}
+export type fhirOutput = { log: Log, bundle?: FhirBundle };
 
-async function validateJwspayload(payload: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const log = jwsPayload.validate(payload);
-    return Promise.resolve(formatOutput(log, logLevel));
-}
 
-async function validateFhirBundle(json: string, logLevel: LogLevels = LogLevels.WARNING): Promise<ValidationErrors> {
-    const log = fhirBundle.validate(json);
-    return Promise.resolve(formatOutput(log, logLevel));
+async function validateJws(text: string, logLevel: LogLevels = LogLevels.WARNING): Promise<fhirOutput> {
+    return await jws.validate(text);
 }
 
 export { ErrorCode } from './error';
@@ -67,8 +59,6 @@ export const validate = {
     "qrnumeric": validateQrnumeric,
     "healthcard": validateHealthcard,
     "jws": validateJws,
-    "jwspayload": validateJwspayload,
-    "fhirbundle": validateFhirBundle,
     "keyset" : validateKeySet,
     "profile" : ValidationProfiles.any
 }

@@ -131,3 +131,6 @@ tmp/*
 
 # full fhir schema
 schema/fhir-schema-full.json
+
+test.mjs
+jwks.json

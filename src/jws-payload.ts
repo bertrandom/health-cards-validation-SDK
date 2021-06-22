@@ -11,8 +11,9 @@ import beautify from 'json-beautify'
 
 export const schema = jwsPayloadSchema;
 
+export type fhirOutput = { log: Log, bundle?: FhirBundle };
 
-export function validate(jwsPayloadText: string): Log {
+export function validate(jwsPayloadText: string): fhirOutput {
 
     const log = new Log('JWS.payload');
 
@@ -23,7 +24,7 @@ export function validate(jwsPayloadText: string): Log {
 
     const jwsPayload = utils.parseJson<JWSPayload>(jwsPayloadText);
     if (!jwsPayload || typeof jwsPayload !== 'object') {
-        return log.fatal("Failed to parse JWS.payload data as JSON.", ErrorCode.JSON_PARSE_ERROR);
+        return {log: log.fatal("Failed to parse JWS.payload data as JSON.", ErrorCode.JSON_PARSE_ERROR)};
     }
     log.debug("JWS Payload Contents:");
     log.debug(beautify(jwsPayload, null as unknown as Array<string>, 3, 100));
@@ -62,15 +63,14 @@ export function validate(jwsPayloadText: string): Log {
     // to continue validation, we must have a FHIR bundle string to validate
     if (!jwsPayload?.vc?.credentialSubject?.fhirBundle) {
         // The schema check above will list the expected properties/type
-        return log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
+        return {log: log.fatal("JWS.payload.vc.credentialSubject.fhirBundle{} required to continue.", ErrorCode.CRITICAL_DATA_MISSING)};
     }
 
     log.info("JWS Payload validated");
 
     const fhirBundleText = JSON.stringify(jwsPayload.vc.credentialSubject.fhirBundle);
 
-    log.child.push((fhirBundle.validate(fhirBundleText)));
+    const output = (fhirBundle.validate(fhirBundleText));
 
-
-    return log;
+    return output;
 }

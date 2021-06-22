@@ -54,15 +54,8 @@ export async function validateCard(fileData: FileInfo[], options: CliOptions): P
             break;
 
         case "jws":
-            result = await jws.validate(fileData[0].buffer.toString());
-            break;
-
-        case "jwspayload":
-            result = jwsPayload.validate(fileData[0].buffer.toString());
-            break;
-
-        case "fhirbundle":
-            result = fhirBundle.validate(fileData[0].buffer.toString());
+            var output = await jws.validate(fileData[0].buffer.toString());
+            result = output.log;
             break;
 
         default:

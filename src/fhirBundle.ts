@@ -23,7 +23,9 @@ export class FhirOptions {
     static ValidationProfile: ValidationProfiles = ValidationProfiles.any;
 }
 
-export function validate(fhirBundleText: string): Log {
+export type fhirOutput = { log: Log, bundle?: FhirBundle };
+
+export function validate(fhirBundleText: string): fhirOutput {
 
     const log = new Log('FhirBundle');
     const profile : ValidationProfiles = FhirOptions.ValidationProfile;
@@ -35,7 +37,7 @@ export function validate(fhirBundleText: string): Log {
 
     const fhirBundle = utils.parseJson<FhirBundle>(fhirBundleText);
     if (fhirBundle === undefined) {
-        return log.fatal("Failed to parse FhirBundle data as JSON.", ErrorCode.JSON_PARSE_ERROR);
+        return {log: log.fatal("Failed to parse FhirBundle data as JSON.", ErrorCode.JSON_PARSE_ERROR)};
     }
 
     if (FhirOptions.LogOutputPath) {
@@ -43,7 +45,7 @@ export function validate(fhirBundleText: string): Log {
     }
 
     // failures will be recorded in the log
-    if (!validateSchema(fhirSchema, fhirBundle, log)) return log;
+    if (!validateSchema(fhirSchema, fhirBundle, log)) return {log: log};
 
 
     // to continue validation, we must have a list of resources in .entry[]
@@ -52,7 +54,7 @@ export function validate(fhirBundleText: string): Log {
         fhirBundle.entry.length === 0
     ) {
         // The schema check above will list the expected properties/type
-        return log.fatal("FhirBundle.entry[] required to continue.", ErrorCode.CRITICAL_DATA_MISSING);
+        return { log: log.fatal("FhirBundle.entry[] required to continue.", ErrorCode.CRITICAL_DATA_MISSING) };
     }
 
     //
@@ -140,7 +142,10 @@ export function validate(fhirBundleText: string): Log {
     log.debug("FHIR Bundle Contents:");
     log.debug(beautify(fhirBundle, null as unknown as Array<string>, 3, 100));
 
-    return log;
+    return {
+        log: log,
+        bundle: fhirBundle
+    };
 }
 
 

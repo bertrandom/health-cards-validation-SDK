@@ -44,7 +44,8 @@ export async function validate(healthCardText: string): Promise<Log> {
 
 
     for (let i = 0; i < vc.length; i++) {
-        log.child.push((await jws.validate(vc[i], vc.length> 1 ? i.toString() : '')));
+        let output = (await jws.validate(vc[i], vc.length > 1 ? i.toString() : ''));
+        log.child.push(output.log);
     }
 
     return log;

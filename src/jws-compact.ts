@@ -22,7 +22,9 @@ export const schema = jwsCompactSchema;
 
 const MAX_JWS_SINGLE_CHUNK_LENGTH = 1195;
 
-export async function validate(jws: JWS, index = ''): Promise<Log> {
+export type fhirOutput = { log: Log, bundle?: FhirBundle };
+
+export async function validate(jws: JWS, index = ''): Promise<fhirOutput> {
 
     // the jws string is not JSON.  It is base64url.base64url.base64url
 
@@ -39,7 +41,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     }
 
     if (!/[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+\.[0-9a-zA-Z_-]+/g.test(jws)) {
-        return log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR);
+        return {log:log.fatal('Failed to parse JWS-compact data as \'base64url.base64url.base64url\' string.', ErrorCode.JSON_PARSE_ERROR)};
     }
 
     // failures will be recorded in the log. we can continue processing.
@@ -174,11 +176,11 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
 
     // try to validate the payload (even if inflation failed)
     const payloadLog = jwsPayload.validate(inflatedPayload || b64DecodedPayloadString || rawPayload);
-    log.child.push(payloadLog);
+    log.child.push(payloadLog.log);
 
     // if we got a fatal error, quit here
-    if (payloadLog.get(LogLevels.FATAL).length) {
-        return log;
+    if (payloadLog.log.get(LogLevels.FATAL).length) {
+        return {log:log};
     }
 
     // try-parse the JSON even if it failed validation above
@@ -189,7 +191,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
     // the jws-payload child will contain the parse errors.
     // The payload validation may have a Fatal error
     if (!payload) {
-        return log;
+        return { log: log };
     }
 
 
@@ -225,7 +227,7 @@ export async function validate(jws: JWS, index = ''): Promise<Log> {
         log.info("JWS signature verified");
     }
 
-    return log;
+    return { log: log, bundle: payloadLog.bundle };
 }
 
 
